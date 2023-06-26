@@ -2,12 +2,16 @@ let channelName
 let provider
 let hideDelay = 3000
 let easing = 'easeOutCubic'
+let audio
 
 window.addEventListener('onWidgetLoad', function (obj) {
     channelName = obj.detail.channel.username
     fetch('https://api.streamelements.com/kappa/v2/channels/' + obj.detail.channel.id + '/').then(response => response.json()).then((profile) => {
         provider = profile.provider
     })
+    
+    audio = new Audio('https://github.com/jgerdum/se-widgets/blob/main/follow-alert/assets/audio-follow.wav?raw=true')
+    audio.volume = 0.5
 
     reset()
 })
@@ -18,7 +22,6 @@ window.addEventListener('onEventReceived', function (obj) {
         let username = data.name
 
         document.querySelector('.message__content').innerHTML = `${username} joined the Nightmare`
-        var audio = new Audio('https://cdn.freesound.org/previews/72/72125_1028972-lq.ogg')
         audio.play()
 
         var tl = anime.timeline({
