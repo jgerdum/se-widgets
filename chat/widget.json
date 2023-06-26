@@ -1,0 +1,16 @@
+{
+  "testMessage": {
+    "type": "button",
+    "label": "Test",
+    "value": "Test",
+    "group": "Test"
+  },
+  "widgetName": {
+    "type": "hidden",
+    "value": "jge's Custom Chat"
+  },
+  "widgetAuthor": {
+    "type": "hidden",
+    "value": "jge"
+  }
+}
