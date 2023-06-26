@@ -9,11 +9,11 @@ window.addEventListener('onWidgetLoad', function (obj) {
     fetch('https://api.streamelements.com/kappa/v2/channels/' + obj.detail.channel.id + '/').then(response => response.json()).then((profile) => {
         provider = profile.provider
     })
+    reset()
     
     audio = new Audio('https://github.com/jgerdum/se-widgets/blob/main/follow-alert/assets/audio-follow.wav?raw=true')
     audio.volume = 0.5
 
-    reset()
 })
 
 window.addEventListener('onEventReceived', function (obj) {

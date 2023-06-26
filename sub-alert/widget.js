@@ -10,12 +10,12 @@ window.addEventListener('onWidgetLoad', function (obj) {
     fetch('https://api.streamelements.com/kappa/v2/channels/' + obj.detail.channel.id + '/').then(response => response.json()).then((profile) => {
         provider = profile.provider
     })
+    reset()
 
     audioSub = new Audio('https://github.com/jgerdum/se-widgets/blob/main/sub-alert/assets/audio-sub.wav?raw=true')
-    audio.volume = 0.5
+    audioSub.volume = 0.5
     audioGift = new Audio('https://github.com/jgerdum/se-widgets/blob/main/sub-alert/assets/audio-gift.wav?raw=true')
-    audio.volume = 0.5
-    reset()
+    audioGift.volume = 0.5
 })
 
 window.addEventListener('onEventReceived', function (obj) {
