@@ -81,8 +81,8 @@
 
 .emote {
     display: inline-block;
-    width: var(--size-emote);
-    height: auto;
+    width: auto;
+    height: var(--size-emote);
     vertical-align: middle;
     background-repeat: no-repeat;
 }

@@ -12,7 +12,7 @@ window.addEventListener('onWidgetLoad', function (obj) {
     reset()
     
     audio = new Audio('https://github.com/jgerdum/se-widgets/blob/main/alert-aside/assets/audio-follow.wav?raw=true')
-    audio.volume = 0.5
+    audio.volume = 0.25
 
 })
 
