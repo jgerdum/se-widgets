@@ -9,7 +9,7 @@ let chatGap = 8
 let chatWidth
 
 let worker
-let workerDelay = 100
+let workerDelay = 50
 let sendQueue = []
 let deleteQueue = []
 let sendQueueBlocked = false
@@ -28,7 +28,7 @@ window.addEventListener('onWidgetLoad', function (obj) {
 window.addEventListener('onEventReceived', function (obj) {
     if (obj.detail.event.listener === 'widget-button') {
         if (obj.detail.event.field === 'testMessage') {
-            let randomId = `43285909-412c-4eee-b80d-89f72ba5314${Math.floor(Math.random() * 10)}`
+            let randomId = `43285909-412c-4eee-b80d-89f72ba${Math.floor(Math.random() * 10)}${Math.floor(Math.random() * 10)}${Math.floor(Math.random() * 10)}${Math.floor(Math.random() * 10)}${Math.floor(Math.random() * 10)}`
             let emulated = new CustomEvent("onEventReceived", {
                 detail: {
                     listener: "message", 
@@ -165,12 +165,12 @@ window.addEventListener('onEventReceived', function (obj) {
     let data = obj.detail.event.data
 
     if (obj.detail.listener == "delete-message") {
-        pushDeleteMessages(`.message[data-mid="${obj.detail.event.msgId}"]`)
+        queueDeleteMessages(`.message[data-mid="${obj.detail.event.msgId}"]`)
         return
     }
     
     if (obj.detail.listener == "delete-messages") {
-        pushDeleteMessages(`.message[data-uid="${obj.detail.event.userId}"]`)
+        queueDeleteMessages(`.message[data-uid="${obj.detail.event.userId}"]`)
         return
     }
 
@@ -188,10 +188,11 @@ window.addEventListener('onEventReceived', function (obj) {
         } else {
             username = `<span>${username}</span>`
         }
-        pushSendMessages(username, badges, message, data.userId, data.msgId)
+        queueSendMessages(username, badges, message, data.userId, data.msgId)
     }
 })
 
+// HEARTBEAT / WORKER
 
 function startQueue() {
     if (worker == null) {
@@ -216,7 +217,7 @@ function queueWorker() {
 
 // PUSHING TO QUEUE
 
-function pushSendMessages(username, badges, message, userId, msgId) {
+function queueSendMessages(username, badges, message, userId, msgId) {
     sendQueue.push({
         username: username,
         badges: badges,
@@ -227,7 +228,7 @@ function pushSendMessages(username, badges, message, userId, msgId) {
     startQueue()
 }
 
-function pushDeleteMessages(selector) {
+function queueDeleteMessages(selector) {
     let messages = document.querySelectorAll(selector)
     if (!messages.length) {
         return
@@ -253,12 +254,12 @@ function handleSendMessage() {
     </div>`)
 
     if (totalMessages > messagesLimit) {
-        handleExpiredMessage(".message:nth-last-child(n+" + (messagesLimit + 1) + ")")
+        handleExpireMessage(".message:nth-last-child(n+" + (messagesLimit + 1) + ")")
     }
 
     let message = document.querySelector(`.chat .message:last-child`)
     let messageHeight = message.scrollHeight
-    let previousMessages = document.querySelectorAll(`.chat .message:not(:last-child)`)
+    let previousMessages = getPreviousSiblings(message)
 
     message.style.position = 'absolute'
     message.style.maxWidth = `${chatWidth}px`
@@ -274,7 +275,7 @@ function handleSendMessage() {
             })
             message.style.position = 'static'
             message.style.width = '100%'
-            setTimeout(function() { handleExpiredMessage(`.message[data-mid="${msgData.msgId}"]`) }, hideDelay)
+            setTimeout(function() { handleExpireMessage(`.message[data-mid="${msgData.msgId}"]`) }, hideDelay)
             sendQueueBlocked = false
         }
     })
@@ -312,6 +313,7 @@ function handleDeleteMessage() {
     .add({
         targets: message,
         opacity: 0,
+        translateX: 32,
         duration: 150,
     })
     .add({
@@ -321,10 +323,20 @@ function handleDeleteMessage() {
     }, '-=150')
 }
 
-function handleExpiredMessage(selector) {
-    let message = document.querySelector(selector) ?? null
-    if (!message) return
-    message.remove()
+function handleExpireMessage(selector) {
+    let messages = document.querySelectorAll(selector) ?? null
+    if (!messages) return
+    messages.forEach(message => {
+        anime({
+            targets: message,
+            easing: easing,
+            opacity: 0,
+            duration: 500,
+            complete: function() {
+                message.remove()
+            }
+        })
+    })
 }
 
 
