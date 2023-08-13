@@ -8,7 +8,7 @@ let audioRaid
 
 window.addEventListener('onWidgetLoad', function (obj) {
     channelName = obj.detail.channel.username
-    fetch('https://api.streamelements.com/kappa/v2/channels/' + obj.detail.channel.id + '/').then(response => response.json()).then((profile) => {
+    fetch(`https://api.streamelements.com/kappa/v2/channels/${obj.detail.channel.id}/`).then(response => response.json()).then((profile) => {
         provider = profile.provider
     })
     reset()

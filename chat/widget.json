@@ -1,8 +1,20 @@
 {
   "testMessage": {
     "type": "button",
-    "label": "Test",
-    "value": "Test",
+    "label": "Send random msgId",
+    "value": "Send random msgId",
+    "group": "Test"
+  },
+  "testMessage2": {
+    "type": "button",
+    "label": "Send",
+    "value": "Send",
+    "group": "Test"
+  },
+  "testDeleteMessage": {
+    "type": "button",
+    "label": "Delete",
+    "value": "Delete",
     "group": "Test"
   },
   "widgetName": {

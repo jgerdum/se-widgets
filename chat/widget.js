@@ -1,27 +1,90 @@
 let totalMessages = 0
-let messagesLimit = 12
-let hideDelay = 30
 let channelName
 let provider
+
+let messagesLimit = 12
+let hideDelay = 30000
 let easing = 'easeOutCubic'
-let chatPadding = 8
+let chatGap = 8
 let chatWidth
+
+let worker
+let workerDelay = 300
+let sendQueue = []
+let deleteQueue = []
+let sendQueueBlocked = false
+let deleteQueueBlocked = false
+
 
 window.addEventListener('onWidgetLoad', function (obj) {
     channelName = obj.detail.channel.username
-    fetch('https://api.streamelements.com/kappa/v2/channels/' + obj.detail.channel.id + '/').then(response => response.json()).then((profile) => {
+    fetch(`https://api.streamelements.com/kappa/v2/channels/${obj.detail.channel.id}/`).then(response => response.json()).then((profile) => {
         provider = profile.provider
     })
 
     chatWidth = getContentWidth(document.querySelector(`.chat`))
+    heartbeat()
 })
 
 window.addEventListener('onEventReceived', function (obj) {
     if (obj.detail.event.listener === 'widget-button') {
         if (obj.detail.event.field === 'testMessage') {
+            let randomId = `43285909-412c-4eee-b80d-89f72ba5314${Math.floor(Math.random() * 10)}`
             let emulated = new CustomEvent("onEventReceived", {
                 detail: {
-                    listener: "message", event: {
+                    listener: "message", 
+                    event: {
+                        service: "twitch",
+                        data: {
+                            time: Date.now(),
+                            tags: {
+                                "badge-info": "",
+                                badges: "moderator/1,partner/1",
+                                color: "#5B99FF",
+                                "display-name": "StreamElements",
+                                emotes: "25:46-50",
+                                flags: "",
+                                id: randomId,
+                                mod: "1",
+                                "room-id": "85827806",
+                                subscriber: "0",
+                                "tmi-sent-ts": "1579444549265",
+                                turbo: "0",
+                                "user-id": "100135110",
+                                "user-type": "mod"
+                            },
+                            nick: channelName,
+                            userId: '100135110',
+                            displayName: channelName,
+                            displayColor: "#8C3EFF",
+                            badges: [{
+                                type: "moderator",
+                                version: "1",
+                                url: "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/3",
+                                description: "Moderator"
+                            }, {
+                                type: "partner",
+                                version: "1",
+                                url: "https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/3",
+                                description: "Verified"
+                            }],
+                            channel: channelName,
+                            text: "Random msgId",
+                            isAction: !1,
+                            emotes: [],
+                            msgId: randomId
+                        },
+                        renderedText: 'Random msgId'
+                    }
+                }
+            })
+            window.dispatchEvent(emulated)
+        }
+        if (obj.detail.event.field === 'testMessage2') {
+            let emulated = new CustomEvent("onEventReceived", {
+                detail: {
+                    listener: "message", 
+                    event: {
                         service: "twitch",
                         data: {
                             time: Date.now(),
@@ -42,7 +105,7 @@ window.addEventListener('onEventReceived', function (obj) {
                                 "user-type": "mod"
                             },
                             nick: channelName,
-                            userId: "100135110",
+                            userId: '100135110',
                             displayName: channelName,
                             displayColor: "#8C3EFF",
                             badges: [{
@@ -80,10 +143,38 @@ window.addEventListener('onEventReceived', function (obj) {
             })
             window.dispatchEvent(emulated)
         }
+        if (obj.detail.event.field === 'testDeleteMessage') {
+            let emulated = new CustomEvent("onEventReceived", {
+                detail: {
+                    listener: "delete-message", 
+                    event: {
+                        service: "twitch",
+                        userId: "100135110",
+                        msgId: "43285909-412c-4eee-b80d-89f72ba53142",
+                        data: {
+                            userId: "100135110",
+                            msgId: "43285909-412c-4eee-b80d-89f72ba53142"
+                        }
+                    }
+                }
+            })
+            window.dispatchEvent(emulated)
+        }
         return
     }
 
     let data = obj.detail.event.data
+
+    if (obj.detail.listener == "delete-message") {
+        pushDeleteMessages(`.message[data-mid="${obj.detail.event.msgId}"]`)
+        return
+    }
+    
+    if (obj.detail.listener == "delete-messages") {
+        pushDeleteMessages(`.message[data-uid="${obj.detail.event.userId}"]`)
+        return
+    }
+
     if (obj.detail.listener === "message") {
 
         let message = attachEmotes(data)
@@ -102,18 +193,165 @@ window.addEventListener('onEventReceived', function (obj) {
             username = `<span>${username}</span>`
         }
         
-        addMessage(username, badges, message, data.userId, data.msgId)
-    }
-
-    else if (obj.detail.listener === "delete-message") {
-        removeMessage(`.message[data-mid="${data.msgId}"]`)
-    }
-    
-    else if (obj.detail.listener === "delete-messages") {
-        removeMessage(`.message[data-uid="${data.userId}"]`)
+        pushSendMessages(username, badges, message, data.userId, data.msgId)
     }
 
 })
+
+
+function heartbeat() {
+    if (worker == null) {
+        worker = setInterval(queueWorker, workerDelay)
+    }
+}
+
+function queueWorker() {
+    if (!sendQueueBlocked && sendQueue.length) {
+        handleSendMessage()
+    }
+    if (!deleteQueueBlocked && deleteQueue.length) {
+        handleDeleteMessage()
+    }
+    if (!sendQueue.length && !deleteQueue.length) {
+        clearInterval(worker)
+        worker = null
+    }
+    console.log('Heartbeat')
+}
+
+
+// PUSHING TO QUEUE
+
+function pushSendMessages(username, badges, message, userId, msgId) {
+    sendQueue.push({
+        username: username,
+        badges: badges,
+        message: message,
+        userId: userId,
+        msgId: msgId
+    })
+    heartbeat()
+}
+
+function pushDeleteMessages(selector) {
+    let messages = document.querySelectorAll(selector)
+    if (!messages.length) {
+        return
+    }
+    messages.forEach(message => {
+        deleteQueue.push(message)
+    })
+    heartbeat()
+}
+
+
+// HANDLERS
+
+function handleSendMessage() {
+    sendQueueBlocked = true
+
+    let msgData = sendQueue.pop()
+
+    totalMessages += 1
+    document.querySelector('.chat').insertAdjacentHTML('beforeend',
+    `<div data-uid="${msgData.userId}" data-mid="${msgData.msgId}" class="message" id="msg-${totalMessages}">
+        <div class="message__user">${msgData.badges}${msgData.username}</div>
+        <div class="message__content">${msgData.message}</div>
+    </div>`)
+
+    if (totalMessages > messagesLimit) {
+        pushDeleteMessages(".message:nth-last-child(n+" + (messagesLimit + 1) + ")")
+    }
+
+    let message = document.querySelector(`.chat .message:last-child`)
+    let messageHeight = message.scrollHeight
+    let previousMessages = document.querySelectorAll(`.chat .message:not(:last-child)`)
+
+    message.style.position = 'absolute'
+    message.style.maxWidth = `${chatWidth}px`
+    anime.set(message, {
+        opacity: 0,
+        translateX: 64
+    })
+
+    var tlS = anime.timeline({
+        easing: easing,
+        complete: function() {
+            anime.set(previousMessages, {
+                translateY: 0
+            })
+            message.style.position = 'static'
+            message.style.width = '100%'
+            sendQueueBlocked = false
+        }
+    })
+    tlS
+    .add({
+        targets: previousMessages,
+        translateY: function() { return -(messageHeight + chatGap) },
+        duration: 250
+    })
+    .add({
+        targets: message,
+        opacity: 1,
+        translateX: 0,
+        duration: 150
+    }, '-=150')
+
+    
+    setTimeout(function() { handleExpiredMessage(`.message[data-mid="${msgData.msgId}"]`) }, hideDelay)
+}
+
+function handleDeleteMessage() {
+    deleteQueueBlocked = true
+
+    let message = deleteQueue.pop()
+    let messageHeight = message.scrollHeight
+    let previousMessages = getPreviousSiblings(message)
+
+
+    var tlD = anime.timeline({
+        easing: easing,
+        complete: function() {
+            anime.set(previousMessages, {
+                translateY: 0
+            })
+            message.remove()
+            deleteQueueBlocked = false
+        }
+    })
+    tlD
+    .add({
+        targets: message,
+        opacity: 0,
+        duration: 150,
+    })
+    .add({
+        targets: previousMessages,
+        translateY: function() { return (messageHeight + chatGap) },
+        duration: 150,
+    }, '-=150')
+}
+
+function handleExpiredMessage(selector) {
+    let message = document.querySelector(selector)
+
+    var tlE = anime.timeline({
+        easing: easing,
+        complete: function() {
+            message.remove()
+        }
+    })
+    tlE
+    .add({
+        targets: message,
+        opacity: 0,
+        duration: 150
+    })
+}
+
+
+// HELPERS
 
 function attachEmotes(message) {
     let text = html_encode(message.text)
@@ -157,81 +395,18 @@ function html_encode(e) {
     })
 }
 
-function addMessage(username, badges, message, uid, msgId) {
-    totalMessages += 1
-    document.querySelector('.chat').insertAdjacentHTML('beforeend',
-    `<div data-uid="${uid}" data-mid="${msgId}" class="message" id="msg-${totalMessages}">
-        <div class="message__user">${badges}${username}</div>
-        <div class="message__content">${message}</div>
-    </div>`)
-
-    if (totalMessages > messagesLimit) {
-        removeMessage(".message:nth-last-child(n+" + (messagesLimit + 1) + ")")
-    }
-
-
-    let latestMessage = document.querySelector(`.chat .message:last-child`)
-    let notLatestMessage = document.querySelectorAll(`.chat .message:not(:last-child)`)
-    let offsetHeight = latestMessage.offsetHeight
-
-    latestMessage.style.position = 'absolute'
-    latestMessage.style.width = `${chatWidth}px`
-    anime.set(latestMessage, {
-        opacity: 0,
-        translateX: 64
-    })
-
-    var tl = anime.timeline({
-        easing: easing,
-        duration: 500,
-        complete: function() {
-            anime.set(notLatestMessage, {
-                translateY: 0
-            })
-            latestMessage.style.position = 'static'
-            latestMessage.style.width = '100%'
-        }
-    })
-    tl
-    .add({
-        targets: notLatestMessage,
-        translateY: function() { return -(offsetHeight + chatPadding) }
-    })
-    .add({
-        targets: latestMessage,
-        opacity: 1,
-        translateX: 0
-    }, '-=100')
-
-    
-    setTimeout(function() { removeMessage(`.message[data-mid="${msgId}"]`) }, hideDelay * 1000)
-}
-
-function removeMessage(selector) {
-    let messages = document.querySelectorAll(selector)
-    if (!messages.length) {
-        return
-    }
-    var tlD = anime.timeline({
-        easing: easing,
-        duration: 250,
-        complete: function() {
-            for (let message of messages) {
-                message.remove()
-            }
-        }
-    })
-    tlD
-    .add({
-        targets: messages,
-        opacity: 0
-    })
-}
-
 function getContentWidth(element) {
     var styles = getComputedStyle(element)
   
     return element.offsetWidth
       - parseFloat(styles.paddingLeft)
       - parseFloat(styles.paddingRight)
+}
+
+function getPreviousSiblings(element) {
+    var siblings = []
+    while (element = element.previousElementSibling) {
+        siblings.push(element)
+    }
+    return siblings
 }
