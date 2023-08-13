@@ -9,7 +9,7 @@ let chatGap = 8
 let chatWidth
 
 let worker
-let workerDelay = 300
+let workerDelay = 100
 let sendQueue = []
 let deleteQueue = []
 let sendQueueBlocked = false
@@ -23,7 +23,6 @@ window.addEventListener('onWidgetLoad', function (obj) {
     })
 
     chatWidth = getContentWidth(document.querySelector(`.chat`))
-    heartbeat()
 })
 
 window.addEventListener('onEventReceived', function (obj) {
@@ -176,47 +175,42 @@ window.addEventListener('onEventReceived', function (obj) {
     }
 
     if (obj.detail.listener === "message") {
-
         let message = attachEmotes(data)
-    
         let badges = ""
         let badge
         for (let i = 0; i < data.badges.length; i++) {
             badge = data.badges[i]
             badges += `<img alt="" src="${badge.url}" class="badge ${badge.type}-icon"> `
         }
-        
         let username = data.displayName + ":"
         if (data.displayColor !== "") {
             username = `<span style="color:${data.displayColor}">${username}</span>`
         } else {
             username = `<span>${username}</span>`
         }
-        
         pushSendMessages(username, badges, message, data.userId, data.msgId)
     }
-
 })
 
 
-function heartbeat() {
+function startQueue() {
     if (worker == null) {
         worker = setInterval(queueWorker, workerDelay)
     }
 }
 
 function queueWorker() {
-    if (!sendQueueBlocked && sendQueue.length) {
-        handleSendMessage()
-    }
-    if (!deleteQueueBlocked && deleteQueue.length) {
-        handleDeleteMessage()
-    }
     if (!sendQueue.length && !deleteQueue.length) {
         clearInterval(worker)
         worker = null
+        return
     }
-    console.log('Heartbeat')
+    if (!sendQueueBlocked && sendQueue.length > 0) {
+        handleSendMessage()
+    }
+    else if (!deleteQueueBlocked && deleteQueue.length > 0) {
+        handleDeleteMessage()
+    }
 }
 
 
@@ -230,7 +224,7 @@ function pushSendMessages(username, badges, message, userId, msgId) {
         userId: userId,
         msgId: msgId
     })
-    heartbeat()
+    startQueue()
 }
 
 function pushDeleteMessages(selector) {
@@ -241,7 +235,7 @@ function pushDeleteMessages(selector) {
     messages.forEach(message => {
         deleteQueue.push(message)
     })
-    heartbeat()
+    startQueue()
 }
 
 
@@ -249,7 +243,6 @@ function pushDeleteMessages(selector) {
 
 function handleSendMessage() {
     sendQueueBlocked = true
-
     let msgData = sendQueue.pop()
 
     totalMessages += 1
@@ -260,7 +253,7 @@ function handleSendMessage() {
     </div>`)
 
     if (totalMessages > messagesLimit) {
-        pushDeleteMessages(".message:nth-last-child(n+" + (messagesLimit + 1) + ")")
+        handleExpiredMessage(".message:nth-last-child(n+" + (messagesLimit + 1) + ")")
     }
 
     let message = document.querySelector(`.chat .message:last-child`)
@@ -273,7 +266,6 @@ function handleSendMessage() {
         opacity: 0,
         translateX: 64
     })
-
     var tlS = anime.timeline({
         easing: easing,
         complete: function() {
@@ -282,6 +274,7 @@ function handleSendMessage() {
             })
             message.style.position = 'static'
             message.style.width = '100%'
+            setTimeout(function() { handleExpiredMessage(`.message[data-mid="${msgData.msgId}"]`) }, hideDelay)
             sendQueueBlocked = false
         }
     })
@@ -297,18 +290,13 @@ function handleSendMessage() {
         translateX: 0,
         duration: 150
     }, '-=150')
-
-    
-    setTimeout(function() { handleExpiredMessage(`.message[data-mid="${msgData.msgId}"]`) }, hideDelay)
 }
 
 function handleDeleteMessage() {
     deleteQueueBlocked = true
-
     let message = deleteQueue.pop()
     let messageHeight = message.scrollHeight
     let previousMessages = getPreviousSiblings(message)
-
 
     var tlD = anime.timeline({
         easing: easing,
@@ -334,20 +322,9 @@ function handleDeleteMessage() {
 }
 
 function handleExpiredMessage(selector) {
-    let message = document.querySelector(selector)
-
-    var tlE = anime.timeline({
-        easing: easing,
-        complete: function() {
-            message.remove()
-        }
-    })
-    tlE
-    .add({
-        targets: message,
-        opacity: 0,
-        duration: 150
-    })
+    let message = document.querySelector(selector) ?? null
+    if (!message) return
+    message.remove()
 }
 
 
