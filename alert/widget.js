@@ -22,25 +22,27 @@ window.addEventListener('onWidgetLoad', function (obj) {
 })
 
 window.addEventListener('onEventReceived', function (obj) {
-    if (obj.detail.listener !== 'subscriber-latest' && obj.detail.listener !== 'raid-latest') { return }
+    if (obj.detail.listener !== 'subscriber-latest' && obj.detail.listener !== 'raid-latest') return
 
     let data = obj.detail.event
     let icon = document.querySelector('.message__icon')
     let content
 
     if (obj.detail.listener === 'subscriber-latest') {
-        content = `Thank you for subscribing, ${data.name}`
-
-        if (data.gifted) {
-            content = `${data.sender} gifted ${data.amount} ${data.amount > 1 ? 'subscriptions' : 'subscription'}`
-            icon.innerHTML = '<svg width="24px" height="24px" stroke-width="2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="white"><path d="M20 12v9.4a.6.6 0 01-.6.6H4.6a.6.6 0 01-.6-.6V12M21.4 7H2.6a.6.6 0 00-.6.6v3.8a.6.6 0 00.6.6h18.8a.6.6 0 00.6-.6V7.6a.6.6 0 00-.6-.6zM12 22V7M12 7H7.5a2.5 2.5 0 110-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
-            audioGift.play()
-        } else {
+        if (!data.gifted) {
+            icon.innerHTML = '<svg width="24px" height="24px" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M128,224l89.36-90.64a50,50,0,1,0-70.72-70.72L128,80,109.36,62.64a50,50,0,0,0-70.72,70.72Z" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>'
+            content = `Thank you for subscribing, ${data.name}`
             audioSub.play()
+        } else {
+            // Gifted sub
+            icon.innerHTML = '<svg width="24px" height="24px" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><rect x="32" y="80" width="192" height="48" rx="8" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M208,128v72a8,8,0,0,1-8,8H56a8,8,0,0,1-8-8V128" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="128" y1="80" x2="128" y2="208" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M176.79,31.21c9.34,9.34,9.89,25.06,0,33.82C159.88,80,128,80,128,80s0-31.88,15-48.79C151.73,21.32,167.45,21.87,176.79,31.21Z" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M79.21,31.21c-9.34,9.34-9.89,25.06,0,33.82C96.12,80,128,80,128,80s0-31.88-15-48.79C104.27,21.32,88.55,21.87,79.21,31.21Z" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>'
+            content = `${data.sender} gifted ${data.amount} ${data.amount > 1 ? 'subscriptions' : 'subscription'}`
+            audioGift.play()
         }
     }
     if (obj.detail.listener === 'raid-latest') {
-        icon.innerHTML = '<svg width="24px" height="24px" stroke-width="2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="white"><path d="M19 12h-7m0 0l3 3m-3-3l3-3M19 6V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2v-1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>'
+        // Raid
+        icon.innerHTML = '<svg width="24px" height="24px" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M224,120a96,96,0,0,0-192,0Z" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="224 120 128 192 32 120" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="128" y1="192" x2="128" y2="224" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="112" y1="224" x2="144" y2="224" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M128,192,88,120c0-72,40-96,40-96s40,24,40,96Z" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>'
         content = `${data.name} joined the Nightmare with ${data.amount} ${data.amount > 1 ? 'raiders' : 'raider'}`
         audioRaid.play()
     }
@@ -64,8 +66,7 @@ window.addEventListener('onEventReceived', function (obj) {
     .add({
         targets: '.message__icon',
         keyframes: [
-            { scale: 1 },
-            { scale: 0.8 },
+            { scale: 1.25 },
             { scale: 1 },
         ]
     })
@@ -78,7 +79,7 @@ function reset() {
         scale: 0.9
     })
     anime.set('.message__icon', {
-        scale: 0.8,
+        scale: 1,
     })
 }
 

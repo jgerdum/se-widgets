@@ -6,8 +6,9 @@ let messagesLimit = 12
 let hideDelay = 30000
 let easing = 'easeOutCubic'
 let chatGap = 8
-let chatWidth
+let hideCommands = true
 
+let chatWidth
 let worker
 let workerDelay = 50
 let sendQueue = []
@@ -68,12 +69,24 @@ window.addEventListener('onEventReceived', function (obj) {
                                 description: "Verified"
                             }],
                             channel: channelName,
-                            text: "Random msgId",
+                            text: "Hey @username and @very_super_long_username Kappa",
                             isAction: !1,
-                            emotes: [],
+                            emotes: [{
+                                type: "twitch",
+                                name: "Kappa",
+                                id: "25",
+                                gif: !1,
+                                urls: {
+                                    1: "https://static-cdn.jtvnw.net/emoticons/v1/25/1.0",
+                                    2: "https://static-cdn.jtvnw.net/emoticons/v1/25/1.0",
+                                    4: "https://static-cdn.jtvnw.net/emoticons/v1/25/3.0"
+                                },
+                                start: 46,
+                                end: 50
+                            }],
                             msgId: randomId
                         },
-                        renderedText: 'Random msgId'
+                        renderedText: 'Hey @username and @very_super_long_username <img src="https://static-cdn.jtvnw.net/emoticons/v1/25/1.0" srcset="https://static-cdn.jtvnw.net/emoticons/v1/25/1.0 1x, https://static-cdn.jtvnw.net/emoticons/v1/25/1.0 2x, https://static-cdn.jtvnw.net/emoticons/v1/25/3.0 4x" title="Kappa" class="emote"/>'
                     }
                 }
             })
@@ -175,22 +188,11 @@ window.addEventListener('onEventReceived', function (obj) {
     }
 
     if (obj.detail.listener === "message") {
-        let message = attachEmotes(data)
-        let badges = ""
-        let badge
-        for (let i = 0; i < data.badges.length; i++) {
-            badge = data.badges[i]
-            badges += `<img alt="" src="${badge.url}" class="badge ${badge.type}-icon"> `
-        }
-        let username = data.displayName + ":"
-        if (data.displayColor !== "") {
-            username = `<span style="color:${data.displayColor}">${username}</span>`
-        } else {
-            username = `<span>${username}</span>`
-        }
-        queueSendMessages(username, badges, message, data.userId, data.msgId)
+        if (data.text.startsWith('!') && hideCommands === true) return
+        queueSendMessages(data)
     }
 })
+
 
 // HEARTBEAT / WORKER
 
@@ -217,14 +219,8 @@ function queueWorker() {
 
 // PUSHING TO QUEUE
 
-function queueSendMessages(username, badges, message, userId, msgId) {
-    sendQueue.push({
-        username: username,
-        badges: badges,
-        message: message,
-        userId: userId,
-        msgId: msgId
-    })
+function queueSendMessages(data) {
+    sendQueue.push(data)
     startQueue()
 }
 
@@ -244,19 +240,40 @@ function queueDeleteMessages(selector) {
 
 function handleSendMessage() {
     sendQueueBlocked = true
-    let msgData = sendQueue.pop()
+    let data = sendQueue.pop()
+    let content
 
-    totalMessages += 1
-    document.querySelector('.chat').insertAdjacentHTML('beforeend',
-    `<div data-uid="${msgData.userId}" data-mid="${msgData.msgId}" class="message" id="msg-${totalMessages}">
-        <div class="message__user">${msgData.badges}${msgData.username}</div>
-        <div class="message__content">${msgData.message}</div>
-    </div>`)
+    content = attachSyntax(attachEmotes(data))
 
-    if (totalMessages > messagesLimit) {
-        handleExpireMessage(".message:nth-last-child(n+" + (messagesLimit + 1) + ")")
+    // Create badges HTML string
+    let badges = ''
+    let badge
+    for (let i = 0; i < data.badges.length; i++) {
+        badge = data.badges[i]
+        badges += `<img alt="" src="${badge.url}" class="badge ${badge.type}-icon"> `
+    }
+    
+    // Set username
+    let username = data.displayName + ":"
+    if (data.displayColor !== '') {
+        username = `<span style="color:${data.displayColor}">${username}</span>`
+    } else {
+        username = `<span>${username}</span>`
     }
 
+    totalMessages += 1
+
+    document.querySelector('.chat').insertAdjacentHTML('beforeend',
+    `<div data-uid="${data.userId}" data-mid="${data.msgId}" class="message" id="msg-${totalMessages}">
+    <div class="message__user"><div class="message__badges">${badges}</div>${username}</div>
+    <div class="message__content">${content}</div>
+    </div>`)
+    
+    if (totalMessages > messagesLimit) {
+        handleExpireMessage('.message:nth-last-child(n+" + (messagesLimit + 1) + ")')
+    }
+
+    // ANIMATE
     let message = document.querySelector(`.chat .message:last-child`)
     let messageHeight = message.scrollHeight
     let previousMessages = getPreviousSiblings(message)
@@ -275,7 +292,7 @@ function handleSendMessage() {
             })
             message.style.position = 'static'
             message.style.width = '100%'
-            setTimeout(function() { handleExpireMessage(`.message[data-mid="${msgData.msgId}"]`) }, hideDelay)
+            setTimeout(function() { handleExpireMessage(`.message[data-mid="${data.msgId}"]`) }, hideDelay)
             sendQueueBlocked = false
         }
     })
@@ -296,6 +313,8 @@ function handleSendMessage() {
 function handleDeleteMessage() {
     deleteQueueBlocked = true
     let message = deleteQueue.pop()
+
+    // ANIMATE
     let messageHeight = message.scrollHeight
     let previousMessages = getPreviousSiblings(message)
 
@@ -342,29 +361,29 @@ function handleExpireMessage(selector) {
 
 // HELPERS
 
-function attachEmotes(message) {
-    let text = html_encode(message.text)
-    let data = message.emotes
-    if (typeof message.attachment !== "undefined") {
-        if (typeof message.attachment.media !== "undefined") {
-            if (typeof message.attachment.media.image !== "undefined") {
-                text = `${message.text}<img src="${message.attachment.media.image.src}">`
+function attachEmotes(data) {
+    let encodedText = html_encode(data.text)
+    let emotes = data.emotes
+    if (typeof data.attachment !== 'undefined') {
+        if (typeof data.attachment.media !== 'undefined') {
+            if (typeof data.attachment.media.image !== 'undefined') {
+                encodedText = `${data.text}<img src="${data.attachment.media.image.src}">`
             }
         }
     }
-    return text
+    return encodedText
         .replace(
             /([^\s]*)/gi,
             function (m, key) {
-                let result = data.filter(emote => {
+                let result = emotes.filter(emote => {
                     return html_encode(emote.name) === key
                 })
-                if (typeof result[0] !== "undefined") {
+                if (typeof result[0] !== 'undefined') {
                     let url = result[0]['urls'][1]
-                    if (provider === "twitch") {
+                    if (provider === 'twitch') {
                         return `<img class="emote" src="${url}"/>`
                     } else {
-                        if (typeof result[0].coords === "undefined") {
+                        if (typeof result[0].coords === 'undefined') {
                             result[0].coords = {x: 0, y: 0}
                         }
                         let x = parseInt(result[0].coords.x)
@@ -373,7 +392,16 @@ function attachEmotes(message) {
                         return `<div class="emote" style="background-image: url(${url}); background-position: -${x}px -${y}px;"></div>`
                     }
                 } else return key
+            }
+        )
+}
 
+function attachSyntax(text) {
+    return text
+        .replace(
+            /(?:^|\W)@(\w+)(?!\w)/g,
+            function (m, key) {
+                return `<span class="tag tag--mention">@${key}</span>`
             }
         )
 }
