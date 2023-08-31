@@ -1,0 +1,46 @@
+{
+  "testCommand0": {
+    "type": "button",
+    "label": "Add Wins",
+    "value": "Add Wins",
+    "group": "Test"
+  },
+  "testCommand1": {
+    "type": "button",
+    "label": "Add Your Losses",
+    "value": "Add Your Losses",
+    "group": "Test"
+  },
+  "testCommand2": {
+    "type": "button",
+    "label": "+1 Wins",
+    "value": "+1 Wins",
+    "group": "Test"
+  },
+  "testCommand3": {
+    "type": "button",
+    "label": "Reset all",
+    "value": "Reset all",
+    "group": "Test"
+  },
+  "testCommand4": {
+    "type": "button",
+    "label": "+1 Losses",
+    "value": "+1 Losses",
+    "group": "Test"
+  },
+  "testCommand5": {
+    "type": "button",
+    "label": "Delete wins",
+    "value": "Delete wins",
+    "group": "Test"
+  },
+  "widgetName": {
+    "type": "hidden",
+    "value": "jge's Custom Counter"
+  },
+  "widgetAuthor": {
+    "type": "hidden",
+    "value": "jge"
+  }
+}

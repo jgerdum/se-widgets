@@ -4,8 +4,8 @@
     --clr-font: #FFFFFF;
     --clr-lines: #FFFFFF;
     --clr-backdrop: 0, 0, 0;
-    --size-text: 22px;
-    --size-emote: 22px;
+    --size-text: 20px;
+    --size-emote: 24px;
     --size-badge: 20px;
 }
 
@@ -68,7 +68,20 @@
 
 .message__user {
     display: inline-flex;
+    gap: 6px;
     align-items: center;
+    vertical-align: bottom;
+}
+
+.message__badges {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.badge {
+    display: block;
+    height: var(--size-badge);
 }
 
 .message__content {
@@ -76,15 +89,6 @@
     word-wrap: break-word;
 }
 
-.message__badges {
-    display: inline-flex;
-    gap: 2px;
-    margin-right: 4px;
-}
-
-.badge {
-    height: var(--size-badge);
-}
 
 .emote {
     display: inline-block;

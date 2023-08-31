@@ -1,13 +1,14 @@
-let totalMessages = 0
-let channelName
-let provider
+let limitMessages = true
+let hideCommands = true
 
+let totalMessages = 0
 let messagesLimit = 12
 let hideDelay = 30000
 let easing = 'easeOutCubic'
 let chatGap = 8
-let hideCommands = true
 
+let channelName
+let provider
 let chatWidth
 let worker
 let workerDelay = 50
@@ -15,6 +16,9 @@ let sendQueue = []
 let deleteQueue = []
 let sendQueueBlocked = false
 let deleteQueueBlocked = false
+
+
+// Issue with messagesLimit: At some point, usually at messagesLimit +1, messages you sent appear, fade out, then do entrance animation and disappear, or they don't register at all. Potential problem: message expires from messagesLimit at the same time it expires because of hideDelay
 
 
 window.addEventListener('onWidgetLoad', function (obj) {
@@ -69,7 +73,7 @@ window.addEventListener('onEventReceived', function (obj) {
                                 description: "Verified"
                             }],
                             channel: channelName,
-                            text: "Hey @username and @very_super_long_username Kappa",
+                            text: "Hey @username Kappa",
                             isAction: !1,
                             emotes: [{
                                 type: "twitch",
@@ -86,7 +90,7 @@ window.addEventListener('onEventReceived', function (obj) {
                             }],
                             msgId: randomId
                         },
-                        renderedText: 'Hey @username and @very_super_long_username <img src="https://static-cdn.jtvnw.net/emoticons/v1/25/1.0" srcset="https://static-cdn.jtvnw.net/emoticons/v1/25/1.0 1x, https://static-cdn.jtvnw.net/emoticons/v1/25/1.0 2x, https://static-cdn.jtvnw.net/emoticons/v1/25/3.0 4x" title="Kappa" class="emote"/>'
+                        renderedText: 'Hey @username <img src="https://static-cdn.jtvnw.net/emoticons/v1/25/1.0" srcset="https://static-cdn.jtvnw.net/emoticons/v1/25/1.0 1x, https://static-cdn.jtvnw.net/emoticons/v1/25/1.0 2x, https://static-cdn.jtvnw.net/emoticons/v1/25/3.0 4x" title="Kappa" class="emote"/>'
                     }
                 }
             })
@@ -241,9 +245,10 @@ function queueDeleteMessages(selector) {
 function handleSendMessage() {
     sendQueueBlocked = true
     let data = sendQueue.pop()
-    let content
 
-    content = attachSyntax(attachEmotes(data))
+
+    let content = attachSyntax(attachEmotes(data))
+    totalMessages += 1
 
     // Create badges HTML string
     let badges = ''
@@ -260,17 +265,15 @@ function handleSendMessage() {
     } else {
         username = `<span>${username}</span>`
     }
-
-    totalMessages += 1
-
+    
     document.querySelector('.chat').insertAdjacentHTML('beforeend',
     `<div data-uid="${data.userId}" data-mid="${data.msgId}" class="message" id="msg-${totalMessages}">
     <div class="message__user"><div class="message__badges">${badges}</div>${username}</div>
     <div class="message__content">${content}</div>
     </div>`)
-    
-    if (totalMessages > messagesLimit) {
-        handleExpireMessage('.message:nth-last-child(n+" + (messagesLimit + 1) + ")')
+
+    if ((totalMessages > messagesLimit) && limitMessages === true) {
+        handleExpireMessage(".message:nth-last-child(n+" + (messagesLimit + 1) + ")")
     }
 
     // ANIMATE
@@ -344,15 +347,19 @@ function handleDeleteMessage() {
 
 function handleExpireMessage(selector) {
     let messages = document.querySelectorAll(selector) ?? null
-    if (!messages) return
+    if (!messages.length) return
     messages.forEach(message => {
         anime({
             targets: message,
             easing: easing,
             opacity: 0,
-            duration: 500,
+            duration: 250,
             complete: function() {
-                message.remove()
+                try {
+                    message.remove()
+                } catch (error) {
+                    
+                }
             }
         })
     })
@@ -364,9 +371,9 @@ function handleExpireMessage(selector) {
 function attachEmotes(data) {
     let encodedText = html_encode(data.text)
     let emotes = data.emotes
-    if (typeof data.attachment !== 'undefined') {
-        if (typeof data.attachment.media !== 'undefined') {
-            if (typeof data.attachment.media.image !== 'undefined') {
+    if (typeof data.attachment !== "undefined") {
+        if (typeof data.attachment.media !== "undefined") {
+            if (typeof data.attachment.media.image !== "undefined") {
                 encodedText = `${data.text}<img src="${data.attachment.media.image.src}">`
             }
         }
@@ -378,12 +385,12 @@ function attachEmotes(data) {
                 let result = emotes.filter(emote => {
                     return html_encode(emote.name) === key
                 })
-                if (typeof result[0] !== 'undefined') {
-                    let url = result[0]['urls'][1]
-                    if (provider === 'twitch') {
+                if (typeof result[0] !== "undefined") {
+                    let url = result[0]["urls"][1]
+                    if (provider === "twitch") {
                         return `<img class="emote" src="${url}"/>`
                     } else {
-                        if (typeof result[0].coords === 'undefined') {
+                        if (typeof result[0].coords === "undefined") {
                             result[0].coords = {x: 0, y: 0}
                         }
                         let x = parseInt(result[0].coords.x)
@@ -407,9 +414,12 @@ function attachSyntax(text) {
 }
 
 function html_encode(e) {
-    return e.replace(/[<>"^]/g, function (e) {
-        return "&#" + e.charCodeAt(0) + ";"
-    })
+    return e
+        .replace(/[<>"^]/g, 
+        function (e) {
+                return "&#" + e.charCodeAt(0) + ";"
+            }
+        )
 }
 
 function getContentWidth(element) {
