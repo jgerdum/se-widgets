@@ -4,6 +4,8 @@ let provider
 let commandName = '!counter'
 let easing = 'easeOutCubic'
 
+let ready = true
+let columnQueue = []
 let counters = []
 const columnInner = `<span>0</span>
                     <div class="counter__column__inner">
@@ -38,7 +40,7 @@ class Counter {
                     `
             }
         ]
-        this._previousColumnAmount = this.#splitValue().length
+        this._columnAmount = this.#splitValue().length
 
         let wrapper = document.querySelector('.main')
         let renderedColumns = this._columns.map(function(column){
@@ -109,8 +111,8 @@ class Counter {
         let valueArray = this.#splitValue()
 
         // Add or remove columns based on length of value array
-        if (valueArray.length !== this._previousColumnAmount) {
-            if (valueArray.length > this._previousColumnAmount) {
+        while (valueArray.length !== this._columnAmount) {
+            if (valueArray.length > this._columnAmount) {
                 let colId = `${this._id}__column-${this._columns.length}`
                 this._columns.push(
                     {
@@ -133,26 +135,31 @@ class Counter {
                     easing: easing,
                     duration: 500
                 })
-
-            } else if (valueArray.length < this._previousColumnAmount){
-                this._columns.pop()
-                let lastColumn = valueElement.querySelector('.counter__column:last-of-type')
-                var tlS = anime.timeline({
-                    easing: easing,
-                    complete: function() {
-                        lastColumn.remove()
-                    }
-                })
-                tlS
-                .add({
-                    targets: lastColumn,
-                    opacity: 0,
-                    duration: 500,
-                })
-                
+                this._columnAmount += 1
+            } else if (valueArray.length < this._columnAmount){
+                let column = this._columns.pop()
+                columnQueue.push(document.getElementById(column.id))
+                this._columnAmount -= 1
             }
-            this._previousColumnAmount = valueArray.length
         }
+
+        var tlS = anime.timeline({
+            easing: easing,
+            complete: function() {
+                for (const column of columnQueue) {
+                    column.remove()
+                    columnQueue = []
+                }
+            }
+        })
+        tlS
+        .add({
+            targets: columnQueue,
+            delay: anime.stagger(20),
+            opacity: 0,
+            translateY: 16,
+            duration: 500,
+        })
 
         // Set correct value for each column
         for (let i = 0; i < this._columns.length; i++) {
@@ -166,6 +173,7 @@ class Counter {
     }
 
     change(amount) {
+        if (!(/^[0-9\+-]+$/i.test(amount))) return
         if (amount.includes('+') || amount.includes('-')) {
             this._value += parseInt(amount)
             this._value = Math.max(this._value, 0)
@@ -508,7 +516,7 @@ window.addEventListener('onEventReceived', function (obj) {
     let data = obj.detail.event.data
 
     if (obj.detail.listener !== 'message') return
-    if (obj.detail.listener === "message") {
+    if (obj.detail.listener === "message" && ready) {
         let content = data.text
         let username = data.displayName
         let perms = {
@@ -517,6 +525,9 @@ window.addEventListener('onEventReceived', function (obj) {
             'sub': !!parseInt(data.tags.subscriber),
             'vip': (data.tags.badges.indexOf('vip') !== -1),
         }
+        
+        ready = false
+        setTimeout(function() { ready = true }, 1000)
 
         if ((perms.broadcaster || perms.mod) && content.startsWith(`${commandName}`)) {
 
@@ -587,15 +598,13 @@ window.addEventListener('onEventReceived', function (obj) {
 function extractData(content) {
     content = content.replace(`${commandName} `, '').split(' ')
     let labelLength = 0
-    let labelArray = []
     for (let i = 0; i < content.length; i++) {
         if (content[i].includes('"')) {
-            labelArray.push(content[i].replace(/['"]+/g, ''))
             labelLength = i + 1
         }
     }
     return {
-        label: labelArray.join(' '), 
+        label: content.slice(0, labelLength).join(' ').replace(/['"]+/g, ''), 
         command: content.slice(labelLength)[0] ?? []
     }
 

@@ -7,14 +7,14 @@
   },
   "testCommand1": {
     "type": "button",
-    "label": "Add Your Losses",
-    "value": "Add Your Losses",
+    "label": "Add Losses",
+    "value": "Add Losses",
     "group": "Test"
   },
   "testCommand2": {
     "type": "button",
-    "label": "+1 Wins",
-    "value": "+1 Wins",
+    "label": "+ Wins",
+    "value": "+ Wins",
     "group": "Test"
   },
   "testCommand3": {
@@ -25,8 +25,8 @@
   },
   "testCommand4": {
     "type": "button",
-    "label": "+1 Losses",
-    "value": "+1 Losses",
+    "label": "+ Losses",
+    "value": "+ Losses",
     "group": "Test"
   },
   "testCommand5": {
