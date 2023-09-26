@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap');
+
+:root {
+    --clr-font: #FFFFFF;
+    --clr-lines: #FFFFFF;
+    --clr-backdrop: 0, 0, 0;
+    --size-title: 32px;
+    --size-text: 16px;
+    --font-serif: 'Instrument Serif', serif;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.3;
+    font-weight: normal;
+    font-size: var(--size-text);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-font-smoothing: antialiased;
+    -o-font-smoothing: antialiased;
+    color: var(--clr-font);
+}
+
+.main {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    width: 100%;
+    height: 100%;
+}
+
+.main.hidden {
+    display: none;
+}
+
+/* CHAT */
+
+.display {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 24px;
+    margin-left: 32px;
+    overflow: hidden;
+}
+
+.display::before {
+    z-index: -1;
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(-90deg, rgba(var(--clr-backdrop), 0.4) 0%, rgba(var(--clr-backdrop), 0) 100%),
+                radial-gradient(90% 110% at 100% 100%, rgba(var(--clr-backdrop), 0.8) 0%, rgba(var(--clr-backdrop), 0) 100%);
+}
+
+.display__primary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.display__primary .divider {
+    font-size: var(--size-text);
+    opacity: 0.6;
+}
+
+.display__primary .player {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.title,
+.display__primary .player__name {
+    font-family: var(--font-serif);
+    font-size: var(--size-title);
+}
+
+.display__primary .player__meta {
+    font-size: var(--size-text);
+    opacity: 0.8;
+}
+
+.display__secondary {
+    font-size: var(--size-text);
+    opacity: 0.8;
+}
+
+.tag {
+    display: inline-flex;
+    padding-inline: 6px;
+    padding-bottom: 1px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+}
+
+/* MISC */
+
+.svg {
+    width: 100%;
+    height: auto;
+}

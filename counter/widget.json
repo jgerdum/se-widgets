@@ -1,39 +1,8 @@
 {
-  "testCommand0": {
-    "type": "button",
-    "label": "Add Wins",
-    "value": "Add Wins",
-    "group": "Test"
-  },
-  "testCommand1": {
-    "type": "button",
-    "label": "Add Losses",
-    "value": "Add Losses",
-    "group": "Test"
-  },
-  "testCommand2": {
-    "type": "button",
-    "label": "+ Wins",
-    "value": "+ Wins",
-    "group": "Test"
-  },
-  "testCommand3": {
-    "type": "button",
-    "label": "Reset all",
-    "value": "Reset all",
-    "group": "Test"
-  },
-  "testCommand4": {
-    "type": "button",
-    "label": "+ Losses",
-    "value": "+ Losses",
-    "group": "Test"
-  },
-  "testCommand5": {
-    "type": "button",
-    "label": "Delete wins",
-    "value": "Delete wins",
-    "group": "Test"
+  "commandName": {
+    "type": "text",
+    "label": "Command name",
+    "value": "!c"
   },
   "widgetName": {
     "type": "hidden",

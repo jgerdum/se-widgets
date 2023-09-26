@@ -1,10 +1,10 @@
+let userOptions = {}
+let commandName
 let channelName
 let provider
 
-let commandName = '!counter'
-let easing = 'easeOutCubic'
-
 let ready = true
+let easing = 'easeOutCubic'
 let columnQueue = []
 let counters = []
 const columnInner = `<span>0</span>
@@ -197,322 +197,14 @@ class Counter {
 
 window.addEventListener('onWidgetLoad', function (obj) {
     channelName = obj.detail.channel.username
+    userOptions = obj.detail.fieldData
+    commandName = userOptions['commandName']
     fetch(`https://api.streamelements.com/kappa/v2/channels/${obj.detail.channel.id}/`).then(response => response.json()).then((profile) => {
         provider = profile.provider
     })
 })
 
 window.addEventListener('onEventReceived', function (obj) {
-    if (obj.detail.event.listener === 'widget-button') {
-        if (obj.detail.event.field === 'testCommand0') {
-            let emulated = new CustomEvent("onEventReceived", {
-                detail: {
-                    listener: "message", 
-                    event: {
-                        service: "twitch",
-                        data: {
-                            time: Date.now(),
-                            tags: {
-                                "badge-info": "",
-                                badges: "moderator/1,partner/1",
-                                color: "#5B99FF",
-                                "display-name": "StreamElements",
-                                emotes: "25:46-50",
-                                flags: "",
-                                id: "43285909-412c-4eee-b80d-89f72ba53142",
-                                mod: "1",
-                                "room-id": "85827806",
-                                subscriber: "0",
-                                "tmi-sent-ts": "1579444549265",
-                                turbo: "0",
-                                "user-id": "100135110",
-                                "user-type": "mod"
-                            },
-                            nick: channelName,
-                            userId: '100135110',
-                            displayName: channelName,
-                            displayColor: "#8C3EFF",
-                            badges: [{
-                                type: "moderator",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/3",
-                                description: "Moderator"
-                            }, {
-                                type: "partner",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/3",
-                                description: "Verified"
-                            }],
-                            channel: channelName,
-                            text: '!counter "Wins"',
-                            isAction: !1,
-                            emotes: [],
-                            msgId: "43285909-412c-4eee-b80d-89f72ba53142"
-                        },
-                        renderedText: '!counter "Wins"'
-                    }
-                }
-            })
-            window.dispatchEvent(emulated)
-        }
-        if (obj.detail.event.field === 'testCommand1') {
-            let emulated = new CustomEvent("onEventReceived", {
-                detail: {
-                    listener: "message", 
-                    event: {
-                        service: "twitch",
-                        data: {
-                            time: Date.now(),
-                            tags: {
-                                "badge-info": "",
-                                badges: "moderator/1,partner/1",
-                                color: "#5B99FF",
-                                "display-name": "StreamElements",
-                                emotes: "25:46-50",
-                                flags: "",
-                                id: "43285909-412c-4eee-b80d-89f72ba53142",
-                                mod: "1",
-                                "room-id": "85827806",
-                                subscriber: "0",
-                                "tmi-sent-ts": "1579444549265",
-                                turbo: "0",
-                                "user-id": "100135110",
-                                "user-type": "mod"
-                            },
-                            nick: channelName,
-                            userId: '100135110',
-                            displayName: channelName,
-                            displayColor: "#8C3EFF",
-                            badges: [{
-                                type: "moderator",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/3",
-                                description: "Moderator"
-                            }, {
-                                type: "partner",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/3",
-                                description: "Verified"
-                            }],
-                            channel: channelName,
-                            text: '!counter "Losses"',
-                            isAction: !1,
-                            emotes: [],
-                            msgId: "43285909-412c-4eee-b80d-89f72ba53142"
-                        },
-                        renderedText: '!counter "Losses"'
-                    }
-                }
-            })
-            window.dispatchEvent(emulated)
-        }
-        if (obj.detail.event.field === 'testCommand2') {
-            let emulated = new CustomEvent("onEventReceived", {
-                detail: {
-                    listener: "message", 
-                    event: {
-                        service: "twitch",
-                        data: {
-                            time: Date.now(),
-                            tags: {
-                                "badge-info": "",
-                                badges: "moderator/1,partner/1",
-                                color: "#5B99FF",
-                                "display-name": "StreamElements",
-                                emotes: "25:46-50",
-                                flags: "",
-                                id: "43285909-412c-4eee-b80d-89f72ba53142",
-                                mod: "1",
-                                "room-id": "85827806",
-                                subscriber: "0",
-                                "tmi-sent-ts": "1579444549265",
-                                turbo: "0",
-                                "user-id": "100135110",
-                                "user-type": "mod"
-                            },
-                            nick: channelName,
-                            userId: '100135110',
-                            displayName: channelName,
-                            displayColor: "#8C3EFF",
-                            badges: [{
-                                type: "moderator",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/3",
-                                description: "Moderator"
-                            }, {
-                                type: "partner",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/3",
-                                description: "Verified"
-                            }],
-                            channel: channelName,
-                            text: '!counter "Wins" +1',
-                            isAction: !1,
-                            emotes: [],
-                            msgId: "43285909-412c-4eee-b80d-89f72ba53142"
-                        },
-                        renderedText: '!counter "Wins" +1'
-                    }
-                }
-            })
-            window.dispatchEvent(emulated)
-        }
-        if (obj.detail.event.field === 'testCommand3') {
-            let emulated = new CustomEvent("onEventReceived", {
-                detail: {
-                    listener: "message", 
-                    event: {
-                        service: "twitch",
-                        data: {
-                            time: Date.now(),
-                            tags: {
-                                "badge-info": "",
-                                badges: "moderator/1,partner/1",
-                                color: "#5B99FF",
-                                "display-name": "StreamElements",
-                                emotes: "25:46-50",
-                                flags: "",
-                                id: "43285909-412c-4eee-b80d-89f72ba53142",
-                                mod: "1",
-                                "room-id": "85827806",
-                                subscriber: "0",
-                                "tmi-sent-ts": "1579444549265",
-                                turbo: "0",
-                                "user-id": "100135110",
-                                "user-type": "mod"
-                            },
-                            nick: channelName,
-                            userId: '100135110',
-                            displayName: channelName,
-                            displayColor: "#8C3EFF",
-                            badges: [{
-                                type: "moderator",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/3",
-                                description: "Moderator"
-                            }, {
-                                type: "partner",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/3",
-                                description: "Verified"
-                            }],
-                            channel: channelName,
-                            text: '!counter reset-all',
-                            isAction: !1,
-                            emotes: [],
-                            msgId: "43285909-412c-4eee-b80d-89f72ba53142"
-                        },
-                        renderedText: '!counter reset-all'
-                    }
-                }
-            })
-            window.dispatchEvent(emulated)
-        }
-        if (obj.detail.event.field === 'testCommand4') {
-            let emulated = new CustomEvent("onEventReceived", {
-                detail: {
-                    listener: "message", 
-                    event: {
-                        service: "twitch",
-                        data: {
-                            time: Date.now(),
-                            tags: {
-                                "badge-info": "",
-                                badges: "moderator/1,partner/1",
-                                color: "#5B99FF",
-                                "display-name": "StreamElements",
-                                emotes: "25:46-50",
-                                flags: "",
-                                id: "43285909-412c-4eee-b80d-89f72ba53142",
-                                mod: "1",
-                                "room-id": "85827806",
-                                subscriber: "0",
-                                "tmi-sent-ts": "1579444549265",
-                                turbo: "0",
-                                "user-id": "100135110",
-                                "user-type": "mod"
-                            },
-                            nick: channelName,
-                            userId: '100135110',
-                            displayName: channelName,
-                            displayColor: "#8C3EFF",
-                            badges: [{
-                                type: "moderator",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/3",
-                                description: "Moderator"
-                            }, {
-                                type: "partner",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/3",
-                                description: "Verified"
-                            }],
-                            channel: channelName,
-                            text: '!counter "Losses" +1',
-                            isAction: !1,
-                            emotes: [],
-                            msgId: "43285909-412c-4eee-b80d-89f72ba53142"
-                        },
-                        renderedText: '!counter "Losses" +1'
-                    }
-                }
-            })
-            window.dispatchEvent(emulated)
-        }
-        if (obj.detail.event.field === 'testCommand5') {
-            let emulated = new CustomEvent("onEventReceived", {
-                detail: {
-                    listener: "message", 
-                    event: {
-                        service: "twitch",
-                        data: {
-                            time: Date.now(),
-                            tags: {
-                                "badge-info": "",
-                                badges: "moderator/1,partner/1",
-                                color: "#5B99FF",
-                                "display-name": "StreamElements",
-                                emotes: "25:46-50",
-                                flags: "",
-                                id: "43285909-412c-4eee-b80d-89f72ba53142",
-                                mod: "1",
-                                "room-id": "85827806",
-                                subscriber: "0",
-                                "tmi-sent-ts": "1579444549265",
-                                turbo: "0",
-                                "user-id": "100135110",
-                                "user-type": "mod"
-                            },
-                            nick: channelName,
-                            userId: '100135110',
-                            displayName: channelName,
-                            displayColor: "#8C3EFF",
-                            badges: [{
-                                type: "moderator",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/3",
-                                description: "Moderator"
-                            }, {
-                                type: "partner",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/3",
-                                description: "Verified"
-                            }],
-                            channel: channelName,
-                            text: '!counter "Wins" delete',
-                            isAction: !1,
-                            emotes: [],
-                            msgId: "43285909-412c-4eee-b80d-89f72ba53142"
-                        },
-                        renderedText: '!counter "Wins" delete'
-                    }
-                }
-            })
-            window.dispatchEvent(emulated)
-        }
-        return
-    }
-
     let data = obj.detail.event.data
 
     if (obj.detail.listener !== 'message') return
@@ -529,7 +221,7 @@ window.addEventListener('onEventReceived', function (obj) {
         ready = false
         setTimeout(function() { ready = true }, 1000)
 
-        if ((perms.broadcaster || perms.mod) && content.startsWith(`${commandName}`)) {
+        if ((perms.broadcaster || perms.mod) && content.startsWith(commandName)) {
 
             let { label, command } = extractData(content)
 
@@ -581,7 +273,7 @@ window.addEventListener('onEventReceived', function (obj) {
                         }
                         else if (command.includes('delete')) {
                             counters[counterIndex].delete()
-                            counters.splice(counterIndex, 1);
+                            counters.splice(counterIndex, 1)
                         }
                         else {
                             counters[counterIndex].change(command)
@@ -596,7 +288,9 @@ window.addEventListener('onEventReceived', function (obj) {
 // HELPERS
 
 function extractData(content) {
-    content = content.replace(`${commandName} `, '').split(' ')
+    // command = commandName + ' '
+    content = content.substring(commandName.length + 1).split(' ')
+    console.log(content)
     let labelLength = 0
     for (let i = 0; i < content.length; i++) {
         if (content[i].includes('"')) {
@@ -608,13 +302,4 @@ function extractData(content) {
         command: content.slice(labelLength)[0] ?? []
     }
 
-}
-
-function html_encode(e) {
-    return e
-        .replace(/[<>"^]/g, 
-        function (e) {
-                return "&#" + e.charCodeAt(0) + ";"
-            }
-        )
 }

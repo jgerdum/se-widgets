@@ -1,15 +1,16 @@
-let limitMessages = true
-let hideCommands = true
-
-let totalMessages = 0
-let messagesLimit = 12
-let hideDelay = 30000
-let easing = 'easeOutCubic'
-let chatGap = 8
-
+let userOptions = {}
 let channelName
 let provider
+let hideDelay
+let hideCommands
+
+let messagesLimit = 12
+let limitMessages = true
+let totalMessages = 0
+let easing = 'easeOutCubic'
+let chatGap = 8
 let chatWidth
+
 let worker
 let workerDelay = 50
 let sendQueue = []
@@ -18,11 +19,11 @@ let sendQueueBlocked = false
 let deleteQueueBlocked = false
 
 
-// Issue with messagesLimit: At some point, usually at messagesLimit +1, messages you sent appear, fade out, then do entrance animation and disappear, or they don't register at all. Potential problem: message expires from messagesLimit at the same time it expires because of hideDelay
-
-
 window.addEventListener('onWidgetLoad', function (obj) {
     channelName = obj.detail.channel.username
+    userOptions = obj.detail.fieldData
+    hideDelay = parseInt(userOptions['hideDelay']) * 1000
+    hideCommands = userOptions['showCommands'] == 'yes' ? false : true
     fetch(`https://api.streamelements.com/kappa/v2/channels/${obj.detail.channel.id}/`).then(response => response.json()).then((profile) => {
         provider = profile.provider
     })
@@ -31,154 +32,6 @@ window.addEventListener('onWidgetLoad', function (obj) {
 })
 
 window.addEventListener('onEventReceived', function (obj) {
-    if (obj.detail.event.listener === 'widget-button') {
-        if (obj.detail.event.field === 'testMessage') {
-            let randomId = `43285909-412c-4eee-b80d-89f72ba${Math.floor(Math.random() * 10)}${Math.floor(Math.random() * 10)}${Math.floor(Math.random() * 10)}${Math.floor(Math.random() * 10)}${Math.floor(Math.random() * 10)}`
-            let emulated = new CustomEvent("onEventReceived", {
-                detail: {
-                    listener: "message", 
-                    event: {
-                        service: "twitch",
-                        data: {
-                            time: Date.now(),
-                            tags: {
-                                "badge-info": "",
-                                badges: "moderator/1,partner/1",
-                                color: "#5B99FF",
-                                "display-name": "StreamElements",
-                                emotes: "25:46-50",
-                                flags: "",
-                                id: randomId,
-                                mod: "1",
-                                "room-id": "85827806",
-                                subscriber: "0",
-                                "tmi-sent-ts": "1579444549265",
-                                turbo: "0",
-                                "user-id": "100135110",
-                                "user-type": "mod"
-                            },
-                            nick: channelName,
-                            userId: '100135110',
-                            displayName: channelName,
-                            displayColor: "#8C3EFF",
-                            badges: [{
-                                type: "moderator",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/3",
-                                description: "Moderator"
-                            }, {
-                                type: "partner",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/3",
-                                description: "Verified"
-                            }],
-                            channel: channelName,
-                            text: "Hey @username Kappa",
-                            isAction: !1,
-                            emotes: [{
-                                type: "twitch",
-                                name: "Kappa",
-                                id: "25",
-                                gif: !1,
-                                urls: {
-                                    1: "https://static-cdn.jtvnw.net/emoticons/v1/25/1.0",
-                                    2: "https://static-cdn.jtvnw.net/emoticons/v1/25/1.0",
-                                    4: "https://static-cdn.jtvnw.net/emoticons/v1/25/3.0"
-                                },
-                                start: 46,
-                                end: 50
-                            }],
-                            msgId: randomId
-                        },
-                        renderedText: 'Hey @username <img src="https://static-cdn.jtvnw.net/emoticons/v1/25/1.0" srcset="https://static-cdn.jtvnw.net/emoticons/v1/25/1.0 1x, https://static-cdn.jtvnw.net/emoticons/v1/25/1.0 2x, https://static-cdn.jtvnw.net/emoticons/v1/25/3.0 4x" title="Kappa" class="emote"/>'
-                    }
-                }
-            })
-            window.dispatchEvent(emulated)
-        }
-        if (obj.detail.event.field === 'testMessage2') {
-            let emulated = new CustomEvent("onEventReceived", {
-                detail: {
-                    listener: "message", 
-                    event: {
-                        service: "twitch",
-                        data: {
-                            time: Date.now(),
-                            tags: {
-                                "badge-info": "",
-                                badges: "moderator/1,partner/1",
-                                color: "#5B99FF",
-                                "display-name": "StreamElements",
-                                emotes: "25:46-50",
-                                flags: "",
-                                id: "43285909-412c-4eee-b80d-89f72ba53142",
-                                mod: "1",
-                                "room-id": "85827806",
-                                subscriber: "0",
-                                "tmi-sent-ts": "1579444549265",
-                                turbo: "0",
-                                "user-id": "100135110",
-                                "user-type": "mod"
-                            },
-                            nick: channelName,
-                            userId: '100135110',
-                            displayName: channelName,
-                            displayColor: "#8C3EFF",
-                            badges: [{
-                                type: "moderator",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/3",
-                                description: "Moderator"
-                            }, {
-                                type: "partner",
-                                version: "1",
-                                url: "https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/3",
-                                description: "Verified"
-                            }],
-                            channel: channelName,
-                            text: "Testing responsiveness with a longer string Kappa",
-                            isAction: !1,
-                            emotes: [{
-                                type: "twitch",
-                                name: "Kappa",
-                                id: "25",
-                                gif: !1,
-                                urls: {
-                                    1: "https://static-cdn.jtvnw.net/emoticons/v1/25/1.0",
-                                    2: "https://static-cdn.jtvnw.net/emoticons/v1/25/1.0",
-                                    4: "https://static-cdn.jtvnw.net/emoticons/v1/25/3.0"
-                                },
-                                start: 46,
-                                end: 50
-                            }],
-                            msgId: "43285909-412c-4eee-b80d-89f72ba53142"
-                        },
-                        renderedText: 'Testing responsiveness with a longer string <img src="https://static-cdn.jtvnw.net/emoticons/v1/25/1.0" srcset="https://static-cdn.jtvnw.net/emoticons/v1/25/1.0 1x, https://static-cdn.jtvnw.net/emoticons/v1/25/1.0 2x, https://static-cdn.jtvnw.net/emoticons/v1/25/3.0 4x" title="Kappa" class="emote"/>'
-                    }
-                }
-            })
-            window.dispatchEvent(emulated)
-        }
-        if (obj.detail.event.field === 'testDeleteMessage') {
-            let emulated = new CustomEvent("onEventReceived", {
-                detail: {
-                    listener: "delete-message", 
-                    event: {
-                        service: "twitch",
-                        userId: "100135110",
-                        msgId: "43285909-412c-4eee-b80d-89f72ba53142",
-                        data: {
-                            userId: "100135110",
-                            msgId: "43285909-412c-4eee-b80d-89f72ba53142"
-                        }
-                    }
-                }
-            })
-            window.dispatchEvent(emulated)
-        }
-        return
-    }
-
     let data = obj.detail.event.data
 
     if (obj.detail.listener == "delete-message") {

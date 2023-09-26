@@ -1,4 +1,19 @@
 {
+  "hideSubDelay": {
+    "type": "text",
+    "label": "Hide sub alert after (s)",
+    "value": "1"
+  },
+  "hideGiftDelay": {
+    "type": "text",
+    "label": "Hide bulk gift alert after (s)",
+    "value": "3"
+  },
+  "hideRaidDelay": {
+    "type": "text",
+    "label": "Hide raid alert after (s)",
+    "value": "5"
+  },
   "widgetName": {
     "type": "hidden",
     "value": "jge's Custom Sub Alert"
