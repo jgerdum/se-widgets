@@ -43,9 +43,7 @@ window.addEventListener('onEventReceived', function (obj) {
         setTimeout(function() { ready = true }, 1000)
 
         if (content.startsWith(commandName)) {
-
-
-            let command = content.replace(commandName, '').split(' ')
+            let command = content.substring(commandName.length).split(' ')
             command = command.filter(function (el) {
                 return el != ''
             })

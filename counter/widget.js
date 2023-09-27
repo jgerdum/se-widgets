@@ -288,7 +288,6 @@ window.addEventListener('onEventReceived', function (obj) {
 // HELPERS
 
 function extractData(content) {
-    // command = commandName + ' '
     content = content.substring(commandName.length + 1).split(' ')
     console.log(content)
     let labelLength = 0
