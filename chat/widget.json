@@ -1,0 +1,24 @@
+{
+  "hideDelay": {
+    "type": "text",
+    "label": "Hide message after (s)",
+    "value": "30"
+  },
+  "showCommands": {
+    "type": "dropdown",
+    "label": "Show commands",
+    "value": "no",
+    "options": {
+      "yes": "Yes",
+      "no": "No"
+    }
+  },
+  "widgetName": {
+    "type": "hidden",
+    "value": "jge's Custom Chat"
+  },
+  "widgetAuthor": {
+    "type": "hidden",
+    "value": "jge"
+  }
+}
